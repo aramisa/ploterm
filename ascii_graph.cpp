@@ -1,11 +1,4 @@
-#include <vector>
-#include <iostream>
-#include <cmath>
-#include <algorithm>
-#include <cstdio>
-
-#include <sstream>
-#include <iomanip>
+#include "ploterm.h"
 
 std::vector<float> reduce_data(std::vector<float> &data, int W)
 {
@@ -36,77 +29,6 @@ std::vector<float> reduce_data(std::vector<float> &data, int W)
   // should check for NaNs
   return data_out;
 }
-
-// void ascii_plot_stringstream(std::stringstream &os, std::vector<float> &data, int W, int H)
-// {
-//   std::vector<std::string> CMAP {"▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"};
-//   int lev_char = CMAP.size();
-
-//   // resize data to size W-5 (best guess), to estimate Y-ticks
-//   data = reduce_data(data, W);
-  
-//   // get max and min
-//   float max_data = *std::max_element(std::begin(data), std::end(data));
-//   float min_data = *std::min_element(std::begin(data), std::end(data));
-//   float diff_data = max_data - min_data;
-  
-//   if (max_data == min_data)
-//     {
-//       // data is flat
-//       if (max_data == 0)
-// 	{
-// 	  max_data = 0.1;
-// 	}
-//       else
-// 	{
-// 	  max_data = max_data + 0.1;
-// 	  min_data = 0;
-// 	}
-//     }
-
-//   std::vector<int> full_blocks(W, 0);
-//   std::vector<int> half_block(W, 0);
-//   for (int n=0; n<W; n++)
-//     {
-//       // get data normalized in the range 0-1 and scale to the number
-//       // of rows available.
-//       float raw_rows = H * ((data[n] - min_data) / diff_data);
-//       // get the number of full rows
-//       int full_blocks[n] = std::floor(raw_rows);
-//       // check if there is a fraction of a row needed
-      
-//       float frac_row = raw_rows - full_blocks[n];
-//       if (frac_row != 0)
-// 	{
-// 	  // scale frac to levels we can afford in row
-// 	  half_block[n] = std::floor(lev_char * frac_row);
-// 	}
-//       else
-// 	{
-// 	  half_block[n] = -1;
-// 	}
-//     }
-//   for (int j=0; j<H; j++)
-//     {
-//       for (int n=0; n<W; n++)
-// 	{
-// 	  if (full_blocks[n] > 0)
-// 	    {
-// 	      full_blocks[n]--;
-// 	      os << CMAP[lev_char - 1];
-// 	    }
-// 	  else
-// 	    {
-// 	      if (half_block[n] != -1)
-// 		{
-// 		  os << CMAP[half_block[n]];
-// 		}
-// 	    }
-// 	}
-//       os << std::endl;
-//     }
-// }
-
 
 std::vector<std::string> make_y_axis(std::vector<float> &data, std::vector<float> &data_short,
 				     float& max_data, float& min_data, float &diff_data, int& W,
@@ -287,7 +209,22 @@ std::vector< std::vector<std::string> > ascii_plot_simple(std::vector<float> &da
   return C;
 }
 
-
+std::string ascii_plot_simple_wrap(std::vector<float> &data, int W, int H)
+{
+  std::vector< std::vector<std::string> > C;
+  std::string out = "";
+  C = ascii_plot_simple(data, W, H);
+  for (int j=C.size()-1; j>=0; j--)
+    {
+      for (int i=0; i<C[j].size(); i++)
+  	{
+  	  out += C[j][i];
+  	}
+      out += "\n";
+    }
+  out += "\n";
+  return out;
+}
 
 int main(void)
 {
