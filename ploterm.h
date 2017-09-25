@@ -7,4 +7,4 @@
 #include <sstream>
 #include <iomanip>
 
-std::string ascii_plot_simple_wrap(std::vector<float> &data, int W, int H);
+std::string ascii_plot_simple_wrap(std::vector<float> data, int W, int H);

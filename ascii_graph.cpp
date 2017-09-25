@@ -209,7 +209,7 @@ std::vector< std::vector<std::string> > ascii_plot_simple(std::vector<float> &da
   return C;
 }
 
-std::string ascii_plot_simple_wrap(std::vector<float> &data, int W, int H)
+std::string ascii_plot_simple_wrap(std::vector<float> data, int W, int H)
 {
   std::vector< std::vector<std::string> > C;
   std::string out = "";
