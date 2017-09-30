@@ -84,9 +84,8 @@ std::vector<std::string> make_y_axis(std::vector<float> &data, std::vector<float
   if (W < 15)
     {
       // Not enough space to plot Yaxis
-      data_short = reduce_data(data, W - 1);
+      data_short = reduce_data(data, W - 2);
       get_min_max(data_short, max_data, min_data, diff_data);
-      std::cout<<W<<" "<<data_short.size()<<std::endl;
       return std::vector<std::string>(H, " \x1B[1;33m|\x1B[0m");
     }
   while (Yaxis_set == false)
@@ -94,7 +93,6 @@ std::vector<std::string> make_y_axis(std::vector<float> &data, std::vector<float
       // resize data to size W-5 (best guess), to estimate Y-ticks
       data_short = reduce_data(data, W - Yaxis_size);
       get_min_max(data_short, max_data, min_data, diff_data);
-      std::cout<<diff_data<<" "<<max_data<<" "<<min_data<<" "<<W<<std::endl;
       int max_size = 0;
       
       // draw Y axis now: first column of C
@@ -151,6 +149,15 @@ std::vector<std::string> make_x_axis(int plot_W, int real_W, int max_X)
 {
   std::vector<std::string> Xaxis(plot_W + 1, " ");
   std::stringstream pre_xaxis;
+  std::cout<<real_W<<" "<<plot_W<<std::endl;
+
+  if (real_W < 15)
+    {
+      // refuse to plot axis 
+      Xaxis = std::vector<std::string>(plot_W + 1, "\x1B[0;33m¯\x1B[0m");
+      Xaxis[0] = "\x1B[0;33m¯|\x1B[0m";
+      return Xaxis;
+    }
   for (int i=0; i<real_W - plot_W - 2; i++)
     {
       pre_xaxis << "¯";
