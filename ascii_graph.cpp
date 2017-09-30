@@ -30,14 +30,45 @@ std::vector<float> reduce_data(std::vector<float> &data, int W)
   return data_out;
 }
 
+
+void get_min_max(std::vector<float> &data_short, float &max_data, float &min_data,
+		 float &diff_data)
+{
+  // get max and min
+  max_data = *std::max_element(std::begin(data_short), std::end(data_short));
+  min_data = *std::min_element(std::begin(data_short), std::end(data_short));
+  if (max_data == min_data)
+    {
+      // data is flat
+      if (max_data == 0)
+	{
+	  max_data = 0.1;
+	}
+      else
+	{
+	  max_data = max_data + 0.1;
+	  min_data = 0;
+	}
+    }
+  diff_data = max_data - min_data;
+}
+
+
 std::vector<std::string> make_y_axis(std::vector<float> &data, std::vector<float> &data_short,
-				     float& max_data, float& min_data, float &diff_data, int& W,
-				     int H)
+				     float& max_data, float& min_data, float &diff_data,
+				     int& W, int H)
 {
   int Yaxis_size = 5;
   bool Yaxis_set = false;
   std::vector<std::string> Yaxis(H, "");
-  
+
+  if (W < 10)
+    {
+      // Not enough space to plot Yaxis
+      data_short = reduce_data(data, W - 1);
+      get_min_max(data_short, max_data, min_data, diff_data);
+      return std::vector<std::string>(H, "\x1B[1;33m|\x1B[0m");
+    }
   while (Yaxis_set == false)
     {
       // resize data to size W-5 (best guess), to estimate Y-ticks
@@ -49,23 +80,11 @@ std::vector<std::string> make_y_axis(std::vector<float> &data, std::vector<float
 	{
 	  data_short = data;
 	}
-      // get max and min
-      max_data = *std::max_element(std::begin(data_short), std::end(data));
-      min_data = *std::min_element(std::begin(data_short), std::end(data));
-      if (max_data == min_data)
-	{
-	  // data is flat
-	  if (max_data == 0)
-	    {
-	      max_data = 0.1;
-	    }
-	  else
-	    {
-	      max_data = max_data + 0.1;
-	      min_data = 0;
-	    }
-	}
-      diff_data = max_data - min_data;
+
+
+
+
+      std::cout<<diff_data<<" "<<max_data<<" "<<min_data<<" "<<W<<std::endl;
       int max_size = 0;
       
       // draw Y axis now: first column of C
@@ -172,9 +191,7 @@ std::vector< std::vector<std::string> > ascii_plot_simple(std::vector<float> &da
   int real_W = W;
   int plot_H = H - 1; //x axis
   std::vector<std::string> Yaxis = make_y_axis(data, data_short, max_data, min_data, diff_data, real_W, plot_H);
-
   std::vector<std::string> Xaxis = make_x_axis(data_short.size(), real_W, data.size());
-
   std::vector< std::vector<std::string> > C(H, std::vector<std::string>(data_short.size() + 1, " "));
   for (int x=1; x<H; x++)  // skip first for Xaxis
     {
