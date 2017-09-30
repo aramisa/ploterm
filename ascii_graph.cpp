@@ -1,35 +1,5 @@
 #include "ploterm.h"
 
-std::vector<float> reduce_data(std::vector<float> &data, int W)
-{
-  if (data.size() <= W)
-    {
-      return data;
-    }
-  // simple approach, split vector in W segments and average points in each segment
-  int step = std::ceil(data.size() / (float)W);
-  std::vector<int> ranges(W+1, step);
-  ranges[0] = 0;
-  // now is overcomplete, discard until sizes match
-  int idx = 1;
-  while (std::accumulate(ranges.begin(), ranges.end(), 0) > data.size())
-    {
-      --ranges[idx++];
-    }
-  std::vector<float> data_out(W, 0);
-  auto start = data.begin();
-  auto end = data.begin();
-
-  for (int i=0; i<W; i++)
-    {
-      start = std::next(start, ranges[i]);
-      end = std::next(end, ranges[i+1]);
-      data_out[i] = std::accumulate(start, end, 0.0) / (float)ranges[i+1];
-    }
-  // should check for NaNs
-  return data_out;
-}
-
 
 void get_min_max(std::vector<float> &data_short, float &max_data, float &min_data,
 		 float &diff_data)
@@ -54,6 +24,55 @@ void get_min_max(std::vector<float> &data_short, float &max_data, float &min_dat
 }
 
 
+std::vector<float> reduce_data(std::vector<float> &data, int W)
+{
+  std::vector<float> data_out(W, 0);
+  if (data.size() < W)
+    {
+      // resampling data
+      float np_inc = (data.size() - 1) / (float)W;
+      float realp = np_inc;
+      data_out[0] = data[0];
+      for (int i=1; i<W-1; i++)
+	{
+	  int p1 = std::floor(realp);
+	  int p2 = p1 + 1;
+	  float f1 = p2 - realp;
+	  float f2 = realp - p1;
+	  data_out[i] = data[p1] * f1 + data[p2] * f2;
+	  realp += np_inc;
+	}
+      data_out[W-1] = data.back();
+      return data_out;
+    }
+  else if(data.size() == W){
+    return data;
+  }
+  // simple approach, split vector in W segments and average points in each segment
+  int step = std::ceil(data.size() / (float)W);
+  std::vector<int> ranges(W+1, step);
+  ranges[0] = 0;
+  // now is overcomplete, discard until sizes match
+  int idx = 1;
+  while (std::accumulate(ranges.begin(), ranges.end(), 0) > data.size())
+    {
+      --ranges[idx++];
+    }
+
+  auto start = data.begin();
+  auto end = data.begin();
+
+  for (int i=0; i<W; i++)
+    {
+      start = std::next(start, ranges[i]);
+      end = std::next(end, ranges[i+1]);
+      data_out[i] = std::accumulate(start, end, 0.0) / (float)ranges[i+1];
+    }
+  // should check for NaNs
+  return data_out;
+}
+
+
 std::vector<std::string> make_y_axis(std::vector<float> &data, std::vector<float> &data_short,
 				     float& max_data, float& min_data, float &diff_data,
 				     int& W, int H)
@@ -62,28 +81,19 @@ std::vector<std::string> make_y_axis(std::vector<float> &data, std::vector<float
   bool Yaxis_set = false;
   std::vector<std::string> Yaxis(H, "");
 
-  if (W < 10)
+  if (W < 15)
     {
       // Not enough space to plot Yaxis
       data_short = reduce_data(data, W - 1);
       get_min_max(data_short, max_data, min_data, diff_data);
-      return std::vector<std::string>(H, "\x1B[1;33m|\x1B[0m");
+      std::cout<<W<<" "<<data_short.size()<<std::endl;
+      return std::vector<std::string>(H, " \x1B[1;33m|\x1B[0m");
     }
   while (Yaxis_set == false)
     {
       // resize data to size W-5 (best guess), to estimate Y-ticks
-      if (data.size() > W - Yaxis_size)
-	{
-	  data_short = reduce_data(data, W - Yaxis_size);
-	}
-      else
-	{
-	  data_short = data;
-	}
-
-
-
-
+      data_short = reduce_data(data, W - Yaxis_size);
+      get_min_max(data_short, max_data, min_data, diff_data);
       std::cout<<diff_data<<" "<<max_data<<" "<<min_data<<" "<<W<<std::endl;
       int max_size = 0;
       
@@ -179,6 +189,7 @@ std::vector<std::string> make_x_axis(int plot_W, int real_W, int max_X)
   return Xaxis;
 }
 
+
 std::vector< std::vector<std::string> > ascii_plot_simple(std::vector<float> &data, int W, int H)
 {
   std::vector<std::string> CMAP {"▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"};
@@ -190,6 +201,13 @@ std::vector< std::vector<std::string> > ascii_plot_simple(std::vector<float> &da
   float diff_data;
   int real_W = W;
   int plot_H = H - 1; //x axis
+  // abort conditions
+  if ((W < 3) || (data.size() < 2))
+    {
+      // refuse to plot
+      std::vector< std::vector<std::string> > C(1, std::vector<std::string>(1, "X"));
+      return C;
+    }
   std::vector<std::string> Yaxis = make_y_axis(data, data_short, max_data, min_data, diff_data, real_W, plot_H);
   std::vector<std::string> Xaxis = make_x_axis(data_short.size(), real_W, data.size());
   std::vector< std::vector<std::string> > C(H, std::vector<std::string>(data_short.size() + 1, " "));
