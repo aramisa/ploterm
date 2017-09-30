@@ -50,8 +50,8 @@ std::vector<std::string> make_y_axis(std::vector<float> &data, std::vector<float
 	  data_short = data;
 	}
       // get max and min
-      max_data = *std::max_element(std::begin(data), std::end(data));
-      min_data = *std::min_element(std::begin(data), std::end(data));
+      max_data = *std::max_element(std::begin(data_short), std::end(data));
+      min_data = *std::min_element(std::begin(data_short), std::end(data));
       if (max_data == min_data)
 	{
 	  // data is flat
