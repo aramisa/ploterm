@@ -208,9 +208,11 @@ std::vector< std::vector<std::string> > ascii_plot_simple(std::vector<float> &da
       std::vector< std::vector<std::string> > C(1, std::vector<std::string>(1, "X"));
       return C;
     }
+
   std::vector<std::string> Yaxis = make_y_axis(data, data_short, max_data, min_data, diff_data, real_W, plot_H);
   std::vector<std::string> Xaxis = make_x_axis(data_short.size(), real_W, data.size());
   std::vector< std::vector<std::string> > C(H, std::vector<std::string>(data_short.size() + 1, " "));
+
   for (int x=1; x<H; x++)  // skip first for Xaxis
     {
       C[x][0] = Yaxis[x-1];
