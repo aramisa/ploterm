@@ -169,7 +169,7 @@ std::vector<std::string> make_x_axis(int plot_W, int real_W, int max_X)
     {
       pre_xaxis << "¯";
     }
-  pre_xaxis << "Ō|";
+  pre_xaxis << "¯|";
   Xaxis[0] = std::string("\x1B[0;33m") + pre_xaxis.str() + std::string("\x1B[0m");
 
   std::stringstream buffer;
