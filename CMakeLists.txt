@@ -1,5 +1,6 @@
-cmake_minimum_required (VERSION 3.1)
-set(CMAKE_CXX_STANDARD 11)
+cmake_minimum_required (VERSION 2.8)
+add_definitions(-std=c++11)
+# set(CMAKE_CXX_STANDARD 11)  # only works with cmake>=3.1
 project (ploterm)
 
 # The version number.
@@ -22,5 +23,5 @@ SWIG_LINK_LIBRARIES(ploterm ${PYTHON_LIBRARIES})
 
 execute_process(COMMAND python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
 install(TARGETS _ploterm DESTINATION ${PYTHON_SITE_PACKAGES})
-install(FILES ${CMAKE_BINARY_DIR}/src/ploterm.py DESTINATION ${PYTHON_SITE_PACKAGES})
+install(FILES ${CMAKE_BINARY_DIR}/ploterm.py DESTINATION ${PYTHON_SITE_PACKAGES})
 # add_executable(ascii_graph ascii_graph.cpp)
