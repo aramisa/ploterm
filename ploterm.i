@@ -9,8 +9,8 @@ namespace std {
 }
 
 %{
-  std::string ascii_plot_simple_wrap(std::vector<float> data, int W, int H);
+  std::string plot(std::vector<float> data, int W, int H);
 %}
 
-std::string ascii_plot_simple_wrap(std::vector<float> data, int W, int H);
+std::string plot(std::vector<float> data, int W, int H);
 
