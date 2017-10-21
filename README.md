@@ -2,10 +2,23 @@
 
 ## Synopsis
 
-Ploterm is a minimal plotting library for command-line applications.
-
-<p align="center">
-<img src="misc/ploterm.jpg" alt="██▇▄▁ Loading image ▁▃▅██">
-</p>
+Ploterm is a minimalistic plotting library for command-line
+applications, with C++ and Python bindings.
 
 ![██▇▄▁ Loading image ▁▃▅██](misc/ploterm.jpg "Ploterm in action.")
+
+The library is very new, so expect many changes.
+
+## Code Example
+
+## Motivation
+
+## Installation
+
+## API Reference
+
+## Tests
+
+## Contributors
+
+## License
