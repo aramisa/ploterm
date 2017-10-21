@@ -9,7 +9,8 @@ namespace std {
 }
 
 %{
-  #include "ploterm.h"
+  std::string ascii_plot_simple_wrap(std::vector<float> data, int W, int H);
 %}
 
-%include "ploterm.h"
+std::string ascii_plot_simple_wrap(std::vector<float> data, int W, int H);
+

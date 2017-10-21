@@ -1,5 +1,13 @@
-#include "ploterm.h"
+#include <vector>
+#include <iostream>
+#include <cmath>
+#include <algorithm>
+#include <cstdio>
 
+#include <sstream>
+#include <iomanip>
+
+std::string ascii_plot_simple_wrap(std::vector<float> data, int W, int H);
 
 void get_min_max(std::vector<float> &data_short, float &max_data, float &min_data,
 		 float &diff_data)
