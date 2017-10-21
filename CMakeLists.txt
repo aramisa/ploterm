@@ -18,10 +18,10 @@ SET(CMAKE_SWIG_FLAGS "")
 
 SET_SOURCE_FILES_PROPERTIES(ploterm.i PROPERTIES CPLUSPLUS ON)
 SET_SOURCE_FILES_PROPERTIES(ploterm.i PROPERTIES SWIG_FLAGS "-includeall")
-SWIG_ADD_MODULE(ploterm python ploterm.i ascii_graph.cpp)
+SWIG_ADD_MODULE(ploterm python ploterm.i ploterm.cpp)
 SWIG_LINK_LIBRARIES(ploterm ${PYTHON_LIBRARIES})
 
 execute_process(COMMAND python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
 install(TARGETS _ploterm DESTINATION ${PYTHON_SITE_PACKAGES})
 install(FILES ${CMAKE_BINARY_DIR}/ploterm.py DESTINATION ${PYTHON_SITE_PACKAGES})
-# add_executable(ascii_graph ascii_graph.cpp)
+# add_executable(ploterm ploterm.cpp)

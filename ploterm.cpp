@@ -6,8 +6,7 @@
 
 #include <sstream>
 #include <iomanip>
-
-std::string ascii_plot_simple_wrap(std::vector<float> data, int W, int H);
+#include "ploterm.h"
 
 void get_min_max(std::vector<float> &data_short, float &max_data, float &min_data,
 		 float &diff_data)
@@ -261,7 +260,7 @@ std::vector< std::vector<std::string> > ascii_plot_simple(std::vector<float> &da
   return C;
 }
 
-std::string ascii_plot_simple_wrap(std::vector<float> data, int W, int H)
+std::string plot(std::vector<float> data, int W, int H)
 {
   std::vector< std::vector<std::string> > C;
   std::string out = "";
