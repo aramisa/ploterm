@@ -1,9 +1,11 @@
 /* ploterm.i */
 %module ploterm
 
+%include "numpy.i"
 %include "typemaps.i"
 %include "std_string.i"
 %include "std_vector.i"
+
 namespace std {
    %template(FloatVector) vector<float>;
 }

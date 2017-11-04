@@ -8,8 +8,8 @@
 #include <iomanip>
 #include "ploterm.h"
 
-void get_min_max(std::vector<float> &data_short, float &max_data, float &min_data,
-		 float &diff_data)
+void get_min_max(std::vector<float> &data_short, float &max_data,
+		 float &min_data, float &diff_data)
 {
   // get max and min
   max_data = *std::max_element(std::begin(data_short), std::end(data_short));
@@ -80,9 +80,10 @@ std::vector<float> reduce_data(std::vector<float> &data, int W)
 }
 
 
-std::vector<std::string> make_y_axis(std::vector<float> &data, std::vector<float> &data_short,
-				     float& max_data, float& min_data, float &diff_data,
-				     int& W, int H)
+std::vector<std::string> make_y_axis(std::vector<float> &data,
+				     std::vector<float> &data_short,
+				     float& max_data, float& min_data,
+				     float &diff_data, int& W, int H)
 {
   int Yaxis_size = 5;
   bool Yaxis_set = false;
@@ -156,7 +157,6 @@ std::vector<std::string> make_x_axis(int plot_W, int real_W, int max_X)
 {
   std::vector<std::string> Xaxis(plot_W + 1, " ");
   std::stringstream pre_xaxis;
-  std::cout<<real_W<<" "<<plot_W<<std::endl;
 
   if (real_W < 15)
     {
@@ -215,14 +215,25 @@ std::vector< std::vector<std::string> > ascii_plot_simple(std::vector<float> &da
   float diff_data;
   int real_W = W;
   int plot_H = H - 1; //x axis
+  bool clean_data = true;
   // abort conditions
-  if ((W < 3) || (data.size() < 2))
+  // check for NaNs.
+  for (std::vector<float>::iterator i=data.begin(); i!=data.end(); i++)
+    {
+      if (!std::isnormal(*i))
+	{
+	  clean_data = false;
+	}
+    }
+  if ((W < 3) || (data.size() < 2) || (H < 1) || !clean_data)
     {
       // refuse to plot
-      std::vector< std::vector<std::string> > C(1, std::vector<std::string>(1, "X"));
+      std::vector< std::vector<std::string> > C(1, std::vector<std::string>(1, clean_data?"X":"NaN"));
       return C;
     }
 
+  // TODO Must check H, special case if H == 1, refuse to plot if H<1
+  // Create Y axis and resample data with appropriate size 
   std::vector<std::string> Yaxis = make_y_axis(data, data_short, max_data, min_data, diff_data, real_W, plot_H);
   std::vector<std::string> Xaxis = make_x_axis(data_short.size(), real_W, data.size());
   std::vector< std::vector<std::string> > C(H, std::vector<std::string>(data_short.size() + 1, " "));
