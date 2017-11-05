@@ -352,6 +352,8 @@ std::vector< std::vector<std::string> > ascii_plot_simple(std::vector<float> &da
 std::string heatmap(std::vector<std::vector<float> > data, int W, int H, 
 		    std::string color_maps24)
 {
+  // TODO add option for colorbar
+  
   float vmin = std::numeric_limits<float>::max();
   float vmax = std::numeric_limits<float>::min();
   float vdiff;
