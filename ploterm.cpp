@@ -1,12 +1,14 @@
 #include <vector>
 #include <iostream>
 #include <cmath>
+#include <limits>
 #include <algorithm>
 #include <cstdio>
 
 #include <sstream>
 #include <iomanip>
 #include "ploterm.h"
+#include "colormaps.hpp"
 
 void get_min_max(std::vector<float> &data_short, float &max_data,
 		 float &min_data, float &diff_data)
@@ -28,6 +30,82 @@ void get_min_max(std::vector<float> &data_short, float &max_data,
 	}
     }
   diff_data = max_data - min_data;
+}
+
+
+std::string make_string(std::vector< std::vector<std::string> > C)
+{
+  std::string out = "";
+  for (int j=C.size()-1; j>=0; j--)
+    {
+      for (int i=0; i<C[j].size(); i++)
+  	{
+  	  out += C[j][i];
+  	}
+      out += "\n";
+    }
+  out += "\n";
+  return out;
+}
+
+
+std::vector<std::vector<float> > reduce_data_2d(std::vector<std::vector<float> > data,
+						int W, int H, float &vmin, float &vmax)
+{
+  std::vector<std::vector<float> >  data_out(H, std::vector<float>(W, 0));
+  size_t data_W = data[0].size();
+  size_t data_H = data.size();
+
+  //if already right size
+  if (data_H == H and data_W == W)
+    {
+      for(int j=0; j<data_H; j++)
+	{
+	  for (int i=0; i<data_W; i++)
+	    {
+	      if (data[j][i] > vmax)
+		{
+		  vmax = data[j][i];
+		}
+	      if (data[j][i] < vmin)
+		{
+		  vmin = data[j][i];
+		}
+	    }
+	}
+      return data;
+    }
+  // do avg pooling in grid for now? (assuming W and H < than data_H and data_W
+  int step_x = data_W / W;
+  int step_y = data_H / H;
+  float norm = step_x * step_y;
+  for (int j=0; j<H; j++)
+    {
+      for (int i=0; i<W; i++)
+	{
+	  float acc = 0;
+	  for (int sj=0; sj<step_y; sj++)
+	    {
+	      for (int si=0; si<step_x; si++)
+		{
+		  if ((j*step_y+sj < data_H) && (i*step_x+si < data_W))
+		    {
+		      acc += data[j*step_y+sj][i*step_x+si];
+		    }
+		}
+	    }
+	  data_out[j][i] = acc / norm;
+	  if (data_out[j][i] > vmax)
+	    {
+	      vmax = data_out[j][i];
+	    }
+	  if (data_out[j][i] < vmin)
+	    {
+	      vmin = data_out[j][i];
+	    }
+	}
+    }
+  return data_out;
 }
 
 
@@ -274,10 +352,20 @@ std::vector< std::vector<std::string> > ascii_plot_simple(std::vector<float> &da
 std::string heatmap(std::vector<std::vector<float> > data, int W, int H, 
 		    std::string color_maps24)
 {
-  float vmin, vmax, vdiff;
+  float vmin = std::numeric_limits<float>::max();
+  float vmax = std::numeric_limits<float>::min();
+  float vdiff;
   int nbins;
+  // check row consistency
+  size_t s = data[0].size();
+  for (std::vector<std::vector<float> >::iterator i=data.begin(); i!=data.end(); i++)
+    {
+      if (i->size() != s)
+	return "X";
+    }
+  
   // load/access color_maps (for speed must be a global variable)
-  vector<std::string> colormap;
+  std::vector<std::string> colormap = ploterm::colormap_jet;
   // get number of colors
   nbins = colormap.size() - 1;
   // resize data to W vs H*2 and get vmin / vmax
@@ -286,7 +374,7 @@ std::string heatmap(std::vector<std::vector<float> > data, int W, int H,
   vdiff = vmax - vmin;
   // create new str array with proper color string in each cell
   std::vector<std::vector<std::string> > C(H, std::vector<std::string>(W, " "));
-  for (int j=0; j<H; j+=2)
+  for (int j=0; j<H*2; j+=2)
     {
       for (int i=0; i<W; i+=1)
 	{
@@ -296,23 +384,14 @@ std::string heatmap(std::vector<std::vector<float> > data, int W, int H,
 	}
     }
   // make string and return
-  // TODO
+  std::string out = make_string(C);
+  return out;
 }
 
 std::string plot(std::vector<float> data, int W, int H)
 {
-  std::vector< std::vector<std::string> > C;
-  std::string out = "";
-  C = ascii_plot_simple(data, W, H);
-  for (int j=C.size()-1; j>=0; j--)
-    {
-      for (int i=0; i<C[j].size(); i++)
-  	{
-  	  out += C[j][i];
-  	}
-      out += "\n";
-    }
-  out += "\n";
+  std::vector< std::vector<std::string> > C = ascii_plot_simple(data, W, H);
+  std::string out = make_string(C);
   return out;
 }
 
