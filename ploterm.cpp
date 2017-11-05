@@ -271,6 +271,34 @@ std::vector< std::vector<std::string> > ascii_plot_simple(std::vector<float> &da
   return C;
 }
 
+std::string heatmap(std::vector<std::vector<float> > data, int W, int H, 
+		    std::string color_maps24)
+{
+  float vmin, vmax, vdiff;
+  int nbins;
+  // load/access color_maps (for speed must be a global variable)
+  vector<std::string> colormap;
+  // get number of colors
+  nbins = colormap.size() - 1;
+  // resize data to W vs H*2 and get vmin / vmax
+  std::vector<std::vector<float> > datashort = reduce_data_2d(data, W, H*2,
+							      vmin, vmax);
+  vdiff = vmax - vmin;
+  // create new str array with proper color string in each cell
+  std::vector<std::vector<std::string> > C(H, std::vector<std::string>(W, " "));
+  for (int j=0; j<H; j+=2)
+    {
+      for (int i=0; i<W; i+=1)
+	{
+	  int data_odd = std::floor(nbins * (datashort[j+1][i] - vmin) / vdiff);
+	  int data_even = std::floor(nbins * (datashort[j][i] - vmin) / vdiff);
+	  C[j/2][i] = "\033[38"+colormap[data_odd]+"\033[48"+colormap[data_even]+"▄\033[0m";
+	}
+    }
+  // make string and return
+  // TODO
+}
+
 std::string plot(std::vector<float> data, int W, int H)
 {
   std::vector< std::vector<std::string> > C;
