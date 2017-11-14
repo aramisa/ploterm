@@ -49,6 +49,42 @@ std::string make_string(std::vector< std::vector<std::string> > C)
 }
 
 
+class IntegralImage
+{
+  std::vector<std::vector<float> > II;
+public:
+  IntegralImage(std::vector<std::vector<float> > A)
+  {
+    II = std::vector<std::vector<float> >(A.size(),
+					  std::vector<float>(A[0].size(), 0));
+    II[0][0] = A[0][0];
+    for (int j=1; j<A.size(); j++)
+      {
+	II[j][0] = II[j-1][0] + A[j][0];
+      }
+    for (int i=1; i<A[0].size(); i++)
+      {
+	II[0][i] = II[0][i-1] + A[0][i];
+      }
+    for (int j=1; j<A.size(); j++)
+      {
+	for(int i=1; i<A[0].size(); i++)
+	  {
+	    II[j][i] = A[j][i] - II[j-1][i] - II[j][i-1] + II[j-1][i-1];
+	  }
+      }
+  }
+  float sum_area(int x1, int y1, int x2, int y2)
+  {
+    return II[y2][x2] + II[y1][x1] - II[y1][x2] - II[y2][x1];
+  }
+  float at(int x, int y)
+  {
+    return II[y][x];
+  }
+
+};
+
 std::vector<std::vector<float> > reduce_data_2d(std::vector<std::vector<float> > data,
 						int W, int H, float &vmin, float &vmax)
 {
@@ -59,7 +95,7 @@ std::vector<std::vector<float> > reduce_data_2d(std::vector<std::vector<float> >
   //if already right size
   if (data_H == H and data_W == W)
     {
-      for(int j=0; j<data_H; j++)
+      for (int j=0; j<data_H; j++)
 	{
 	  for (int i=0; i<data_W; i++)
 	    {
@@ -75,26 +111,46 @@ std::vector<std::vector<float> > reduce_data_2d(std::vector<std::vector<float> >
 	}
       return data;
     }
-  // do avg pooling in grid for now? (assuming W and H < than data_H and data_W
-  int step_x = data_W / W;
-  int step_y = data_H / H;
-  float norm = step_x * step_y;
+  
+  IntegralImage integral(data);
+  float step_x = data_W / (float) W;
+  float step_y = data_H / (float) H;
+  std::cout<<step_x<<" "<<step_y<<std::endl;
   for (int j=0; j<H; j++)
     {
       for (int i=0; i<W; i++)
 	{
-	  float acc = 0;
-	  for (int sj=0; sj<step_y; sj++)
+	  // coordinates in original space (data)
+	  float y = j * step_y;
+	  float x = i * step_x;
+	  // neighbor coordinates in original space (data)
+	  int y1o = std::floor((j - 0.5) * step_y);
+	  int y2o = std::floor((j + 0.5) * step_y); //y1o + 1; //std::ceil(y);
+	  int x1o = std::floor((i - 0.5) * step_x);
+	  int x2o = std::floor((i + 0.5) * step_x); // x1o + 1; //std::ceil(x);
+
+	  if (y1o < 0)
 	    {
-	      for (int si=0; si<step_x; si++)
-		{
-		  if ((j*step_y+sj < data_H) && (i*step_x+si < data_W))
-		    {
-		      acc += data[j*step_y+sj][i*step_x+si];
-		    }
-		}
+	      y1o = 0;
 	    }
-	  data_out[j][i] = acc / norm;
+	  if (x1o < 0)
+	    {
+	      x1o = 0;
+	    }
+	  if (y2o >= data_H)
+	    {
+	      y2o = data_H - 1;
+	    }
+	  if (x2o >= data_W)
+	    {
+	      x2o = data_W - 1;
+	    }
+	  data_out[j][i] = integral.sum_area(x1o, y1o, x2o, y2o);
+	    //  (x2o - x) * (y2o - y) * integral.sum_area(y1o, x1o) +
+	    //  (x - x1o) * (y2o - y) * integral.sum_area(y1o, x2o) +
+	    //  (x2o - x) * (y - y1o) * integral.sum_area(y2o, x1o) +
+	    //  (x - x1o) * (y - y1o) * integral.sum_area(y2o, x2o);
+	  std::cout<<data_out[j][i]<<" "<<x<<" "<<y<<" ("<<x1o<<","<<y1o<<")"<<" ("<<x2o<<","<<y2o<<")"<<std::endl;
 	  if (data_out[j][i] > vmax)
 	    {
 	      vmax = data_out[j][i];
@@ -104,7 +160,39 @@ std::vector<std::vector<float> > reduce_data_2d(std::vector<std::vector<float> >
 	      vmin = data_out[j][i];
 	    }
 	}
+      
     }
+
+  // do avg pooling in grid for now? (assuming W and H < than data_H and data_W
+  // int step_x = data_W / W;
+  // int step_y = data_H / H;
+  // float norm = step_x * step_y;
+  // for (int j=0; j<H; j++)
+  //   {
+  //     for (int i=0; i<W; i++)
+  // 	{
+  // 	  float acc = 0;
+  // 	  for (int sj=0; sj<step_y; sj++)
+  // 	    {
+  // 	      for (int si=0; si<step_x; si++)
+  // 		{
+  // 		  if ((j*step_y+sj < data_H) && (i*step_x+si < data_W))
+  // 		    {
+  // 		      acc += data[j*step_y+sj][i*step_x+si];
+  // 		    }
+  // 		}
+  // 	    }
+  // 	  data_out[j][i] = acc / norm;
+  // 	  if (data_out[j][i] > vmax)
+  // 	    {
+  // 	      vmax = data_out[j][i];
+  // 	    }
+  // 	  if (data_out[j][i] < vmin)
+  // 	    {
+  // 	      vmin = data_out[j][i];
+  // 	    }
+  // 	}
+  //   }
   return data_out;
 }
 
