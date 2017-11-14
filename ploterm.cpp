@@ -112,55 +112,56 @@ std::vector<std::vector<float> > reduce_data_2d(std::vector<std::vector<float> >
       return data;
     }
   
-  IntegralImage integral(data);
+  // IntegralImage integral(data);
   float step_x = data_W / (float) W;
   float step_y = data_H / (float) H;
-  std::cout<<step_x<<" "<<step_y<<std::endl;
   for (int j=0; j<H; j++)
     {
       for (int i=0; i<W; i++)
-	{
-	  // coordinates in original space (data)
-	  float y = j * step_y;
-	  float x = i * step_x;
-	  // neighbor coordinates in original space (data)
-	  int y1o = std::floor((j - 0.5) * step_y);
-	  int y2o = std::floor((j + 0.5) * step_y); //y1o + 1; //std::ceil(y);
-	  int x1o = std::floor((i - 0.5) * step_x);
-	  int x2o = std::floor((i + 0.5) * step_x); // x1o + 1; //std::ceil(x);
+  	{
+  	  // coordinates in original space (data)
+  	  float y = j * step_y;
+  	  float x = i * step_x;
+  	  // neighbor coordinates in original space (data)
+  	  int y1o = std::floor(j * step_y);
+  	  int y2o = y1o + 1; //y1o + 1; //std::ceil(y);
+  	  int x1o = std::floor(i * step_x);
+  	  int x2o = x1o + 1; //std::ceil(x);
 
-	  if (y1o < 0)
-	    {
-	      y1o = 0;
+  	  if (y1o < 0)
+  	    {
+  	      y1o = 0;
+	      y2o++;
+  	    }
+  	  if (x1o < 0)
+  	    {
+  	      x1o = 0;
+	      x2o++;
+  	    }
+  	  if (y2o >= data_H)
+  	    {
+  	      y2o = data_H - 1;
+	      y1o--;
 	    }
-	  if (x1o < 0)
-	    {
-	      x1o = 0;
-	    }
-	  if (y2o >= data_H)
-	    {
-	      y2o = data_H - 1;
-	    }
-	  if (x2o >= data_W)
-	    {
-	      x2o = data_W - 1;
-	    }
-	  data_out[j][i] = integral.sum_area(x1o, y1o, x2o, y2o);
-	    //  (x2o - x) * (y2o - y) * integral.sum_area(y1o, x1o) +
-	    //  (x - x1o) * (y2o - y) * integral.sum_area(y1o, x2o) +
-	    //  (x2o - x) * (y - y1o) * integral.sum_area(y2o, x1o) +
-	    //  (x - x1o) * (y - y1o) * integral.sum_area(y2o, x2o);
-	  std::cout<<data_out[j][i]<<" "<<x<<" "<<y<<" ("<<x1o<<","<<y1o<<")"<<" ("<<x2o<<","<<y2o<<")"<<std::endl;
-	  if (data_out[j][i] > vmax)
-	    {
-	      vmax = data_out[j][i];
-	    }
-	  if (data_out[j][i] < vmin)
-	    {
-	      vmin = data_out[j][i];
-	    }
-	}
-      
+  	  if (x2o >= data_W)
+  	    {
+  	      x2o = data_W - 1;
+	      x1o--;
+  	    }
+  	  data_out[j][i] = // integral.sum_area(x1o, y1o, x2o, y2o);
+  	    (x2o - x) * (y2o - y) * data[y1o][x1o] +
+  	    (x - x1o) * (y2o - y) * data[y1o][x2o] +
+  	    (x2o - x) * (y - y1o) * data[y2o][x1o] +
+  	    (x - x1o) * (y - y1o) * data[y2o][x2o];
+  	  if (data_out[j][i] > vmax)
+  	    {
+  	      vmax = data_out[j][i];
+  	    }
+  	  if (data_out[j][i] < vmin)
+  	    {
+  	      vmin = data_out[j][i];
+  	    }
+  	}
     }
 
   // do avg pooling in grid for now? (assuming W and H < than data_H and data_W
@@ -468,8 +469,8 @@ std::string heatmap(std::vector<std::vector<float> > data, int W, int H,
     {
       for (int i=0; i<W; i+=1)
 	{
-	  int data_odd = std::floor(nbins * (datashort[j+1][i] - vmin) / vdiff);
-	  int data_even = std::floor(nbins * (datashort[j][i] - vmin) / vdiff);
+	  int data_odd = std::floor(nbins * (datashort[j][i] - vmin) / vdiff);
+	  int data_even = std::floor(nbins * (datashort[j+1][i] - vmin) / vdiff);
 	  C[j/2][i] = "\033[38"+colormap[data_odd]+"\033[48"+colormap[data_even]+"▄\033[0m";
 	}
     }
