@@ -85,6 +85,76 @@ public:
 
 };
 
+std::vector<std::vector<std::vector<uint8_t> > > reduce_image(std::vector<std::vector<std::vector <uint8_t> > > img,
+					      int W, int H)
+{
+  std::vector<std::vector<std::vector <uint8_t> > > img_small(H, std::vector<std::vector<uint8_t> >(W, std::vector<uint8_t>(3, 0)));
+  size_t img_W = img[0].size();
+  size_t img_H = img.size();
+  
+  //if already right size (need to copy?)
+  if (img_H == H and img_W == W)
+    {
+      return img;
+    }
+
+  // IntegralImage integral(data);
+  float step_x = img_W / (float) W;
+  float step_y = img_H / (float) H;
+  for (int j=0; j<H; j++)
+    {
+      for (int i=0; i<W; i++)
+  	{
+  	  // coordinates in original space (data)
+  	  float y = j * step_y;
+  	  float x = i * step_x;
+  	  // neighbor coordinates in original space (data)
+  	  int y1o = std::floor(j * step_y);
+  	  int y2o = y1o + 1; //y1o + 1; //std::ceil(y);
+  	  int x1o = std::floor(i * step_x);
+  	  int x2o = x1o + 1; //std::ceil(x);
+
+  	  if (y1o < 0)
+  	    {
+  	      y1o = 0;
+	      y2o++;
+  	    }
+  	  if (x1o < 0)
+  	    {
+  	      x1o = 0;
+	      x2o++;
+  	    }
+  	  if (y2o >= img_H)
+  	    {
+  	      y2o = img_H - 1;
+	      y1o--;
+	    }
+  	  if (x2o >= img_W)
+  	    {
+  	      x2o = img_W - 1;
+	      x1o--;
+  	    }
+  	  img_small[j][i][0] =
+  	    (x2o - x) * (y2o - y) * img[y1o][x1o][0] +
+  	    (x - x1o) * (y2o - y) * img[y1o][x2o][0] +
+  	    (x2o - x) * (y - y1o) * img[y2o][x1o][0] +
+  	    (x - x1o) * (y - y1o) * img[y2o][x2o][0];
+  	  img_small[j][i][1] =
+  	    (x2o - x) * (y2o - y) * img[y1o][x1o][1] +
+  	    (x - x1o) * (y2o - y) * img[y1o][x2o][1] +
+  	    (x2o - x) * (y - y1o) * img[y2o][x1o][1] +
+  	    (x - x1o) * (y - y1o) * img[y2o][x2o][1];
+  	  img_small[j][i][2] =
+  	    (x2o - x) * (y2o - y) * img[y1o][x1o][2] +
+  	    (x - x1o) * (y2o - y) * img[y1o][x2o][2] +
+  	    (x2o - x) * (y - y1o) * img[y2o][x1o][2] +
+  	    (x - x1o) * (y - y1o) * img[y2o][x2o][2];
+  	}
+    }
+  return img_small;
+}  
+
+
 std::vector<std::vector<float> > reduce_data_2d(std::vector<std::vector<float> > data,
 						int W, int H, float &vmin, float &vmax)
 {
@@ -92,7 +162,7 @@ std::vector<std::vector<float> > reduce_data_2d(std::vector<std::vector<float> >
   size_t data_W = data[0].size();
   size_t data_H = data.size();
 
-  //if already right size
+  //if already right size (need to copy?)
   if (data_H == H and data_W == W)
     {
       for (int j=0; j<data_H; j++)
@@ -436,6 +506,24 @@ std::vector< std::vector<std::string> > ascii_plot_simple(std::vector<float> &da
     }
   // return
   return C;
+}
+
+std::string image(std::vector<std::vector<std::vector<uint8_t> > > img, int W, int H)
+{
+  std::vector<std::vector<std::vector<uint8_t> > > img_small = reduce_image(img, W, H*2);
+  std::vector<std::vector<std::string> > C(H, std::vector<std::string>(W, " "));
+  for (int j=0; j<H*2; j+=2)
+    {
+      for (int i=0; i<W; i+=1)
+	{
+	  std::string pix_odd = ";2;" + std::to_string(img_small[j][i][0]) + ";" + std::to_string(img_small[j][i][1]) + ";" + std::to_string(img_small[j][i][2]) + "m";
+	  std::string pix_even = ";2;" + std::to_string(img_small[j+1][i][0]) + ";" + std::to_string(img_small[j+1][i][1]) + ";" + std::to_string(img_small[j+1][i][2]) + "m";
+	  C[j/2][i] = "\033[38" + pix_odd + "\033[48" + pix_even + "▄\033[0m";
+	}
+    }
+  // make string and return
+  std::string out = make_string(C);
+  return out;
 }
 
 std::string heatmap(std::vector<std::vector<float> > data, int W, int H, 

@@ -3127,6 +3127,7 @@
 /* Concrete instances of the %numpy_typemaps() macro: Each invocation
  * below applies all of the typemaps above to the specified data type.
  */
+%numpy_typemaps(uint8_t           , NPY_UBYTE    , int)
 %numpy_typemaps(signed char       , NPY_BYTE     , int)
 %numpy_typemaps(unsigned char     , NPY_UBYTE    , int)
 %numpy_typemaps(short             , NPY_SHORT    , int)
